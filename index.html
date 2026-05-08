@@ -61,7 +61,7 @@
                 Pedido Recebido
             </span>
             <h1 class="font-oswald text-5xl md:text-7xl font-bold text-white uppercase leading-tight mb-6">
-                Tá no jogo. Vamos te ligar <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow to-orange-500">ainda hoje</span>.
+                Tá no jogo. <span id="fraseContato"><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow to-orange-500">Vamos te ligar ainda hoje</span>.</span>
             </h1>
             <p class="text-gray-200 text-lg md:text-2xl max-w-3xl mb-10 font-medium leading-relaxed">
                 Enquanto isso, dá uma olhada no que você <span class="text-brand-yellow">acabou de pedir</span>.
@@ -279,6 +279,33 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Frase de contato dinâmica (atendimento Seg-Sex, 8h-18h)
+        (() => {
+            const fraseEl = document.getElementById('fraseContato');
+            if (!fraseEl) return;
+            const agora = new Date();
+            const dia = agora.getDay(); // 0=dom, 1=seg, ..., 5=sex, 6=sáb
+            const hora = agora.getHours();
+
+            const GRAD = 'text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow to-orange-500';
+            // Default: Seg-Sex em horário comercial → ainda hoje
+            let html = `<span class="${GRAD}">Vamos te ligar ainda hoje</span>.`;
+
+            if (dia === 0 || dia === 6) {
+                // Sábado ou domingo → segunda
+                html = `<span class="${GRAD}">Segunda-feira</span> te chamamos.`;
+            } else if (dia === 5 && hora >= 18) {
+                // Sexta após 18h → segunda
+                html = `<span class="${GRAD}">Segunda-feira</span> te chamamos.`;
+            } else if (dia >= 1 && dia <= 4 && hora >= 18) {
+                // Seg-Qui após 18h → amanhã
+                html = `<span class="${GRAD}">Amanhã cedo</span> te chamamos.`;
+            }
+            // Caso especial: antes das 8h em dia útil → ainda é dia útil, então mantém "ainda hoje"
+
+            fraseEl.innerHTML = html;
+        })();
+
         const getAsset = (path) => path.split('.').reduce((obj, key) => obj?.[key], ASSETS);
         document.querySelectorAll('[data-asset]').forEach(el => {
             const url = getAsset(el.dataset.asset);
